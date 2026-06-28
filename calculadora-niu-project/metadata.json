@@ -1,0 +1,6 @@
+{
+  "name": "Calculadora NIU Project",
+  "description": "Calculadora interactiva de presupuesto para casas de madera industrializadas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
