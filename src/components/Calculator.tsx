@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   MapPin, 
@@ -108,6 +108,42 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [dossierDownloaded, setDossierDownloaded] = useState<boolean>(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.ResizeObserver) return;
+    const element = containerRef.current;
+    if (!element) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        // Measure element including padding, border, and margin spacing
+        const height = element.scrollHeight || entry.contentRect.height;
+        window.parent.postMessage({ type: 'niu-resize', height: valor_en_px }, '*');
+        // Post message to the parent frame (Framer website)
+        window.parent.postMessage({
+          type: 'niu-resize',
+          height: height
+        }, '*');
+      }
+    });
+
+    resizeObserver.observe(element);
+    
+    // Also trigger initial measurement immediately
+    const initialHeight = element.scrollHeight || element.offsetHeight;
+    if (initialHeight) {
+      window.parent.postMessage({
+        type: 'niu-resize',
+        height: initialHeight
+      }, '*');
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [step, isSuccess]);
 
   // Direct toggle function for boolean choices
   const toggleField = (key: keyof FormData) => {
@@ -722,7 +758,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
   const fmt = (val: number) => val.toLocaleString('es-ES');
 
   return (
-    <div id="calculadora" className="relative bg-transparent">
+    <div ref={containerRef} id="calculadora" className="relative bg-transparent">
       <div className="max-w-5xl mx-auto relative z-10 text-niu-text">
         
         {/* WIZARD CONTAINER */}
