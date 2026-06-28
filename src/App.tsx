@@ -7,7 +7,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-transparent font-sans text-niu-text p-0">
-      <div className="w-full max-w-5xl md:max-w-6xl mx-auto">
+      <div className="w-full max-w-7xl mx-auto">
         <Calculator currentLang="es" translations={activeTranslations} />
       </div>
     </div>

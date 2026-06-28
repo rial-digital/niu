@@ -108,8 +108,27 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [dossierDownloaded, setDossierDownloaded] = useState<boolean>(false);
+  const [activeCalendlyUrl, setActiveCalendlyUrl] = useState<string | null>(null);
+  const [bookedEvent, setBookedEvent] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleCalendlyMessage = (e: MessageEvent) => {
+      if (e.data && e.data.event && e.data.event.indexOf('calendly') === 0) {
+        if (e.data.event === 'calendly.event_scheduled') {
+          setBookedEvent(true);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleCalendlyMessage);
+    return () => {
+      window.removeEventListener('message', handleCalendlyMessage);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.ResizeObserver) return;
@@ -751,10 +770,19 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
       url.searchParams.set('utm_campaign', formData.projectType);
       url.searchParams.set('utm_content', summaryText);
       
+      // Embed optimization parameters
+      url.searchParams.set('hide_landing_page_details', '1');
+      url.searchParams.set('hide_gdpr_banner', '1');
+      
       return url.toString();
     } catch (e) {
       return baseUrl;
     }
+  };
+
+  const handleInitiateBooking = (baseUrl: string) => {
+    const url = getPrefilledCalendlyUrl(baseUrl);
+    setActiveCalendlyUrl(url);
   };
 
   const handleUserDetailChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -862,7 +890,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
 
   return (
     <div ref={containerRef} id="calculadora" className="relative bg-transparent">
-      <div className="max-w-5xl mx-auto relative z-10 text-niu-text">
+      <div className="max-w-7xl mx-auto relative z-10 text-niu-text">
         
         {/* WIZARD CONTAINER */}
         <div className="w-full print:hidden">
@@ -1010,118 +1038,182 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
 
                   {/* Booking widget integration callout */}
                   <div className="bg-stone-50 p-6 sm:p-8 rounded-sm border border-stone-200/60 max-w-2xl mx-auto">
-                    {userDetails.tipoContacto === 'phone' && (
-                      <div className="space-y-4">
-                        <h4 className="font-display font-extrabold text-lg text-niu-dark mb-2 flex items-center justify-center gap-1.5">
-                          <Phone className="w-4 h-4 text-niu-main" /> ¿Cuándo te iría bien que te llamásemos?
-                        </h4>
-                        <p className="text-gray-500 mb-6 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto">
-                          Selecciona un día y hora para que nuestro equipo te haga la llamada de teléfono.
-                        </p>
-                        <a 
-                          href={getPrefilledCalendlyUrl("https://calendly.com/niuproject/llamada-telefonica-de-15-minutos")} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2"
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span>Agendar tu llamada</span>
-                        </a>
-                      </div>
-                    )}
-
-                    {userDetails.tipoContacto === 'presencial' && (
-                      <div className="space-y-4">
-                        <h4 className="font-display font-extrabold text-lg text-niu-dark mb-2 flex items-center justify-center gap-1.5">
-                          <MapPin className="w-4 h-4 text-niu-main" /> ¿Cuándo te iría bien pasarte por nuestro estudio?
-                        </h4>
-                        <p className="text-gray-500 mb-6 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto">
-                          Selecciona un día y hora para podernos conocer personalmente y para que hablemos de tu Nido.
-                        </p>
-                        <a 
-                          href={getPrefilledCalendlyUrl("https://calendly.com/niuproject/reunion-presencial-despacho")} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2"
-                        >
-                          <MapPin className="w-4 h-4" />
-                          <span>Agendar tu visita</span>
-                        </a>
-                      </div>
-                    )}
-
-                    {userDetails.tipoContacto === 'videocall' && (
-                      <div className="space-y-4">
-                        <h4 className="font-display font-extrabold text-lg text-niu-dark mb-2 flex items-center justify-center gap-1.5">
-                          <Sparkles className="w-4 h-4 text-niu-main" /> ¿Agendamos una consultoría técnica gratuita?
-                        </h4>
-                        <p className="text-gray-500 mb-6 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto">
-                          Reserva una videollamada corta de 15 minutos en nuestro calendario para conversar sobre normativas, plazos, cimentación o resolver dudas directamente con nuestro equipo de arquitectura.
-                        </p>
-                        <a 
-                          href={getPrefilledCalendlyUrl("https://calendly.com/niuproject/30min")} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2"
-                        >
-                          <Calendar className="w-4 h-4" />
-                          <span>Agendar Sesión Online</span>
-                        </a>
-                      </div>
-                    )}
-
-                    {userDetails.tipoContacto === 'email' && (
-                      <div className="space-y-6">
-                        <div>
-                          <h4 className="font-display font-extrabold text-lg text-niu-dark mb-2 flex items-center justify-center gap-1.5">
-                            <Sparkles className="w-4 h-4 text-niu-main" /> ¿Agendamos una consultoría técnica gratuita?
+                    {bookedEvent ? (
+                      <div className="space-y-5 text-center py-6">
+                        <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-100 animate-bounce">
+                          <Check className="w-8 h-8 text-emerald-600 stroke-[3px]" />
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-display font-extrabold text-2xl text-niu-dark">
+                            ¡Sesión Agendada con Éxito!
                           </h4>
-                          <p className="text-gray-500 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto">
-                            Reserva una videollamada corta de 15 minutos en nuestro calendario para conversar sobre normativas, plazos, cimentación o resolver dudas directamente con nuestro equipo de arquitectura.
+                          <p className="text-gray-600 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto">
+                            Estupendo, <strong>{userDetails.nombre}</strong>. Tu cita ha quedado reservada correctamente en nuestro calendario. Hemos enviado un correo electrónico de confirmación con el enlace de acceso a <strong>{userDetails.email}</strong>.
                           </p>
                         </div>
-
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                          <a 
-                            href={getPrefilledCalendlyUrl("https://calendly.com/niuproject/30min")} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2"
-                          >
-                            <Calendar className="w-4 h-4" />
-                            <span>Agendar Sesión Online</span>
-                          </a>
-
+                        <p className="text-gray-400 text-[11px] font-light max-w-sm mx-auto leading-relaxed">
+                          Nuestro equipo técnico de arquitectura ya dispone de toda la configuración y opciones de extras seleccionadas para tu proyecto. ¡Estamos encantados de hablar contigo!
+                        </p>
+                        <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center items-center">
                           <button 
                             type="button"
                             onClick={handleDownloadDossier}
-                            className="btn-secondary w-full sm:w-auto inline-flex items-center justify-center gap-2 cursor-pointer hover:border-niu-hover hover:text-niu-hover transition-all duration-300"
+                            className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <FileText className="w-4 h-4" />
                             <span>Descargar Resumen (PDF)</span>
                           </button>
+                          {activeCalendlyUrl && (
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                setActiveCalendlyUrl(null);
+                                setBookedEvent(false);
+                              }}
+                              className="text-xs text-stone-400 hover:text-niu-main transition-colors font-medium cursor-pointer"
+                            >
+                              Volver a ver calendario
+                            </button>
+                          )}
                         </div>
-
-                        {dossierDownloaded && (
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="space-y-3"
+                      </div>
+                    ) : activeCalendlyUrl ? (
+                      <div className="space-y-4 text-left">
+                        <div className="flex justify-between items-center border-b border-stone-150 pb-3">
+                          <h4 className="font-display font-bold text-sm sm:text-base text-niu-dark flex items-center gap-1.5">
+                            <Calendar className="w-4 h-4 text-niu-main animate-pulse" /> Reserva tu cita en el calendario
+                          </h4>
+                          <button 
+                            type="button"
+                            onClick={() => setActiveCalendlyUrl(null)}
+                            className="text-xs text-stone-400 hover:text-niu-main transition-colors font-medium flex items-center gap-1 cursor-pointer"
                           >
-                            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded text-center text-xs font-light max-w-md mx-auto leading-relaxed">
-                              <strong>✓ Dossier de inversión generado:</strong> Se ha abierto el menú de impresión de tu navegador para guardar como PDF. También hemos enviado el estudio completo a tu correo de contacto de forma automática.
-                            </div>
-                            <div className="p-4 bg-amber-50/60 border border-amber-200/70 text-amber-900 rounded text-left text-xs font-light max-w-md mx-auto leading-relaxed">
-                              <p className="font-semibold mb-1 text-amber-950">Aclaración sobre la Estimación Preliminar:</p>
-                              <p className="text-amber-800 leading-normal">
-                                Las cantidades indicadas en el estudio son valores aproximados de mercado y de carácter puramente orientativo. 
-                                Existen múltiples partidas indispensables excluidas de esta estimación base (como cimentación especial, movimientos de tierra, estudios geotécnicos/topográficos, tasas locales y licencias de obra). 
-                                Este documento resumen no es contractual ni vinculante, y no compromete en ningún caso a NIU Project a realizar trabajos por dicho presupuesto preliminar.
+                            ✕ Cancelar y Volver
+                          </button>
+                        </div>
+                        <div className="relative bg-white border border-stone-200 rounded overflow-hidden shadow-inner h-[680px] w-full">
+                          <iframe 
+                            src={activeCalendlyUrl} 
+                            width="100%" 
+                            height="100%" 
+                            frameBorder="0"
+                            className="w-full h-full border-0"
+                            title="Calendly Scheduling"
+                          ></iframe>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {userDetails.tipoContacto === 'phone' && (
+                          <div className="space-y-4">
+                            <h4 className="font-display font-extrabold text-lg text-niu-dark mb-2 flex items-center justify-center gap-1.5">
+                              <Phone className="w-4 h-4 text-niu-main" /> ¿Cuándo te iría bien que te llamásemos?
+                            </h4>
+                            <p className="text-gray-500 mb-6 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto">
+                              Selecciona un día y hora para que nuestro equipo te haga la llamada de teléfono.
+                            </p>
+                            <button 
+                              type="button"
+                              onClick={() => handleInitiateBooking("https://calendly.com/niuproject/llamada-telefonica-de-15-minutos")} 
+                              className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                              <Phone className="w-4 h-4" />
+                              <span>Agendar tu llamada</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {userDetails.tipoContacto === 'presencial' && (
+                          <div className="space-y-4">
+                            <h4 className="font-display font-extrabold text-lg text-niu-dark mb-2 flex items-center justify-center gap-1.5">
+                              <MapPin className="w-4 h-4 text-niu-main" /> ¿Cuándo te iría bien pasarte por nuestro estudio?
+                            </h4>
+                            <p className="text-gray-500 mb-6 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto">
+                              Selecciona un día y hora para podernos conocer personalmente y para que hablemos de tu Nido.
+                            </p>
+                            <button 
+                              type="button"
+                              onClick={() => handleInitiateBooking("https://calendly.com/niuproject/reunion-presencial-despacho")} 
+                              className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                              <MapPin className="w-4 h-4" />
+                              <span>Agendar tu visita</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {userDetails.tipoContacto === 'videocall' && (
+                          <div className="space-y-4">
+                            <h4 className="font-display font-extrabold text-lg text-niu-dark mb-2 flex items-center justify-center gap-1.5">
+                              <Sparkles className="w-4 h-4 text-niu-main" /> ¿Agendamos una consultoría técnica gratuita?
+                            </h4>
+                            <p className="text-gray-500 mb-6 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto">
+                              Reserva una videollamada corta de 15 minutos en nuestro calendario para conversar sobre normativas, plazos, cimentación o resolver dudas directamente con nuestro equipo de arquitectura.
+                            </p>
+                            <button 
+                              type="button"
+                              onClick={() => handleInitiateBooking("https://calendly.com/niuproject/30min")} 
+                              className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                              <Calendar className="w-4 h-4" />
+                              <span>Agendar Sesión Online</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {userDetails.tipoContacto === 'email' && (
+                          <div className="space-y-6">
+                            <div>
+                              <h4 className="font-display font-extrabold text-lg text-niu-dark mb-2 flex items-center justify-center gap-1.5">
+                                <Sparkles className="w-4 h-4 text-niu-main" /> ¿Agendamos una consultoría técnica gratuita?
+                              </h4>
+                              <p className="text-gray-500 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto">
+                                Reserva una videollamada corta de 15 minutos en nuestro calendario para conversar sobre normativas, plazos, cimentación o resolver dudas directamente con nuestro equipo de arquitectura.
                               </p>
                             </div>
-                          </motion.div>
+
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                              <button 
+                                type="button"
+                                onClick={() => handleInitiateBooking("https://calendly.com/niuproject/30min")} 
+                                className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 cursor-pointer"
+                              >
+                                <Calendar className="w-4 h-4" />
+                                <span>Agendar Sesión Online</span>
+                              </button>
+
+                              <button 
+                                type="button"
+                                onClick={handleDownloadDossier}
+                                className="btn-secondary w-full sm:w-auto inline-flex items-center justify-center gap-2 cursor-pointer hover:border-niu-hover hover:text-niu-hover transition-all duration-300"
+                              >
+                                <FileText className="w-4 h-4" />
+                                <span>Descargar Resumen (PDF)</span>
+                              </button>
+                            </div>
+
+                            {dossierDownloaded && (
+                              <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-3"
+                              >
+                                <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded text-center text-xs font-light max-w-md mx-auto leading-relaxed">
+                                  <strong>✓ Dossier de inversión generado:</strong> Se ha abierto el menú de impresión de tu navegador para guardar como PDF. También hemos enviado el estudio completo a tu correo de contacto de forma automática.
+                                </div>
+                                <div className="p-4 bg-amber-50/60 border border-amber-200/70 text-amber-950 rounded text-left text-xs font-light max-w-md mx-auto leading-relaxed">
+                                  <p className="font-semibold mb-1 text-amber-950">Aclaración sobre la Estimación Preliminar:</p>
+                                  <p className="text-amber-800 leading-normal">
+                                    Las cantidades indicadas en el estudio son valores aproximados de mercado y de carácter puramente orientativo. 
+                                    Existen múltiples partidas indispensables excluidas de esta estimación base (como cimentación especial, movimientos de tierra, estudios geotécnicos/topográficos, tasas locales y licencias de obra). 
+                                    Este documento resumen no es contractual ni vinculante, y no compromete en ningún caso a NIU Project a realizar trabajos por dicho presupuesto preliminar.
+                                  </p>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
                         )}
-                      </div>
+                      </>
                     )}
                   </div>
 
@@ -1130,6 +1222,8 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                       setStep(1);
                       setIsSuccess(false);
                       setDossierDownloaded(false);
+                      setActiveCalendlyUrl(null);
+                      setBookedEvent(false);
                       setFormData({
                         plotM2: 500,
                         plotLocation: '',
