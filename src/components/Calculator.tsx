@@ -120,7 +120,6 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
       for (let entry of entries) {
         // Measure element including padding, border, and margin spacing
         const height = element.scrollHeight || entry.contentRect.height;
-        window.parent.postMessage({ type: 'niu-resize', height: valor_en_px }, '*');
         // Post message to the parent frame (Framer website)
         window.parent.postMessage({
           type: 'niu-resize',
@@ -654,6 +653,54 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
     URL.revokeObjectURL(url);
   };
 
+  const getPrefilledCalendlyUrl = (baseUrl: string) => {
+    try {
+      const url = new URL(baseUrl);
+      
+      // Standard Calendly prefill parameters
+      if (userDetails.nombre) {
+        url.searchParams.set('name', userDetails.nombre.trim());
+      }
+      if (userDetails.email) {
+        url.searchParams.set('email', userDetails.email.trim());
+      }
+      if (userDetails.telefono) {
+        // Calendly's built-in field prefill parameter
+        url.searchParams.set('phone_number', userDetails.telefono.trim());
+        // Custom question prefill backup (many Calendly forms use custom question as a1/a2 for phone)
+        url.searchParams.set('a1', userDetails.telefono.trim());
+      }
+      
+      // Prepare a concise, clean summary of their selections to show to the admin
+      const extrasList: string[] = [];
+      if (formData.fencing) extrasList.push('Valla');
+      if (formData.porch) extrasList.push('Porche');
+      if (formData.landscaping) extrasList.push('Jardín');
+      if (formData.pool) extrasList.push('Piscina');
+      if (formData.solarPanels) extrasList.push('Solar');
+      if (formData.waterRecycling) extrasList.push('Agua Lluvia');
+      if (formData.waterFiltration) extrasList.push('Agua Purificada');
+      
+      const extrasStr = extrasList.length > 0 ? ` + Extras: ${extrasList.join(', ')}` : '';
+      const summaryText = `${formData.projectType === 'cohousing' ? 'Cohousing' : `Casa ${formData.houseM2} m² (${formData.floors} pl, ${formData.rooms} dorm)`}${extrasStr}. Presupuesto est.: ${costBreakdown.total.toLocaleString('es-ES')} €`;
+      
+      // Pass the summary text to standard custom question param a2
+      url.searchParams.set('a2', summaryText);
+      // Also write in a3 as backup
+      url.searchParams.set('a3', summaryText);
+      
+      // Set industry-standard UTM parameters that automatically populate in Calendly's dashboard
+      url.searchParams.set('utm_source', 'niu_calculator');
+      url.searchParams.set('utm_medium', 'interactive_calculator');
+      url.searchParams.set('utm_campaign', formData.projectType);
+      url.searchParams.set('utm_content', summaryText);
+      
+      return url.toString();
+    } catch (e) {
+      return baseUrl;
+    }
+  };
+
   const handleUserDetailChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setUserDetails(prev => ({ ...prev, [name]: value }));
@@ -924,7 +971,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                           Selecciona un día y hora para que nuestro equipo te haga la llamada de teléfono.
                         </p>
                         <a 
-                          href="https://calendly.com/niuproject/llamada-telefonica-de-15-minutos" 
+                          href={getPrefilledCalendlyUrl("https://calendly.com/niuproject/llamada-telefonica-de-15-minutos")} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2"
@@ -944,7 +991,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                           Selecciona un día y hora para podernos conocer personalmente y para que hablemos de tu Nido.
                         </p>
                         <a 
-                          href="https://calendly.com/niuproject/reunion-presencial-despacho" 
+                          href={getPrefilledCalendlyUrl("https://calendly.com/niuproject/reunion-presencial-despacho")} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2"
@@ -964,7 +1011,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                           Reserva una videollamada corta de 15 minutos en nuestro calendario para conversar sobre normativas, plazos, cimentación o resolver dudas directamente con nuestro equipo de arquitectura.
                         </p>
                         <a 
-                          href="https://calendly.com/niuproject/30min" 
+                          href={getPrefilledCalendlyUrl("https://calendly.com/niuproject/30min")} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2"
@@ -988,7 +1035,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                           <a 
-                            href="https://calendly.com/niuproject/30min" 
+                            href={getPrefilledCalendlyUrl("https://calendly.com/niuproject/30min")} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2"
