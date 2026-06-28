@@ -215,6 +215,62 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
     }
   };
 
+  const getStepHeader = () => {
+    switch (step) {
+      case 1:
+        return {
+          title: "Tipo de Proyecto",
+          subtitle: "Selecciona la solución que se adapta a tu búsqueda.",
+          icon: <Home className="text-niu-main w-6 h-6 shrink-0" />,
+          stepName: "1. TIPO DE PROYECTO"
+        };
+      case 2:
+        return {
+          title: formData.projectType === 'remontas' ? "Tu Edificio original" : "Tu Terreno",
+          subtitle: formData.projectType === 'remontas' 
+            ? "Especifica los datos básicos sobre la edificación o espacio urbano donde se realizará la remonta en altura." 
+            : "Especifica la información básica de la parcela o terreno donde se asentará tu futuro hogar.",
+          icon: <MapPin className="text-niu-main w-6 h-6 shrink-0" />,
+          stepName: formData.projectType === 'remontas' ? "2. INFORMACIÓN DEL EDIFICIO" : "2. TU TERRENO"
+        };
+      case 3:
+        return {
+          title: "Dimensiones y Estancias",
+          subtitle: "Especifica la superficie construible total deseada y la distribución de estancias de tu futura vivienda.",
+          icon: <Layers className="text-niu-main w-6 h-6 shrink-0" />,
+          stepName: "3. DIMENSIONES Y ESTANCIAS"
+        };
+      case 4:
+        return {
+          title: "Exteriores y Adicionales",
+          subtitle: "Selecciona los adicionales exteriores que te interesen para tu parcela. Los costes se calculan dinámicamente y se presupuestan de forma independiente a la vivienda estándar.",
+          icon: <Trees className="text-niu-main w-6 h-6 shrink-0" />,
+          stepName: "4. EXTERIORES Y EQUIPAMIENTO"
+        };
+      case 5:
+        return {
+          title: "Sostenibilidad y Salud",
+          subtitle: "Tu casa respira contigo. Revisa los equipamientos de sostenibilidad ecológica incorporados y opcionales.",
+          icon: <Wind className="text-niu-main w-6 h-6 shrink-0" />,
+          stepName: "5. SOSTENIBILIDAD Y SALUD"
+        };
+      case 6:
+        return {
+          title: "Consigue tu Estudio de Viabilidad",
+          subtitle: "Introduce tus datos de contacto para enviarte el dossier técnico pormenorizado de calidades y coordinar un primer análisis con arquitectura.",
+          icon: <FileText className="text-niu-main w-6 h-6 shrink-0" />,
+          stepName: "6. ESTUDIO DE VIABILIDAD"
+        };
+      default:
+        return {
+          title: "",
+          subtitle: "",
+          icon: null,
+          stepName: ""
+        };
+    }
+  };
+
   // Comprehensive construction price compilation
   const calculateCosts = () => {
     // If cohousing, do not calculate or return any prices
@@ -809,17 +865,9 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
       <div className="max-w-5xl mx-auto relative z-10 text-niu-text">
         
         {/* WIZARD CONTAINER */}
-        <div className="bg-white shadow-xl rounded-sm overflow-hidden border border-gray-100/90 print:hidden">
+        <div className="w-full print:hidden">
           
-          {/* STATIC PROGRESS BAR */}
-          <div className="w-full bg-gray-100 h-1.5 overflow-hidden">
-            <div 
-              className="bg-niu-main h-full transition-all duration-500 ease-out" 
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-
-          <div className="p-6 sm:p-12 md:p-14">
+          <div className="p-0">
             <AnimatePresence mode="wait">
               
               {/* SUCCESS VIEW */}
@@ -1120,17 +1168,31 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                 /* MULTI STEP WIZARD FORM */
                 <div className="focus-trap">
                   
-                  {/* STEPPER HEADING */}
-                  <div className="mb-8 border-b border-stone-100 pb-4 flex justify-between items-center text-xs font-bold uppercase tracking-wider text-stone-400">
-                    <span>Paso {step} de 6</span>
-                    <span className="text-niu-main">
-                      {step === 1 && "1. Tipo de Proyecto"}
-                      {step === 2 && (formData.projectType === 'remontas' ? "2. Información del Edificio" : "2. Tu Terreno")}
-                      {step === 3 && "3. Dimensiones y Estancias"}
-                      {step === 4 && "4. Exteriores y Equipamiento"}
-                      {step === 5 && "5. Sostenibilidad y Salud"}
-                      {step === 6 && "6. Estudio de Viabilidad"}
-                    </span>
+                  {/* STEP TITLE AND SUBTITLE (Moved to top) */}
+                  <div className="space-y-1 mb-6 text-left">
+                    <h3 className="font-display text-2xl font-bold text-niu-dark inline-flex items-center gap-2">
+                      {getStepHeader().icon} {getStepHeader().title}
+                    </h3>
+                    <p className="text-sm font-light text-gray-500">
+                      {getStepHeader().subtitle}
+                    </p>
+                  </div>
+
+                  {/* STEPPER HEADING AND PROGRESS BAR (Swapped below Title) */}
+                  <div className="space-y-3 mb-8 text-left">
+                    <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-stone-400">
+                      <span>Paso {step} de 6</span>
+                      <span className="text-niu-main">
+                        {getStepHeader().stepName}
+                      </span>
+                    </div>
+                    {/* PROGRESS BAR DIVIDER */}
+                    <div className="w-full bg-stone-100 h-1.5 overflow-hidden rounded-full">
+                      <div 
+                        className="bg-niu-main h-full transition-all duration-500 ease-out" 
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
                   </div>
 
                   {/* STEP SWITCHBOARD */}
@@ -1143,14 +1205,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                       transition={{ duration: 0.3 }}
                       className="space-y-6 text-left"
                     >
-                      <div className="space-y-1">
-                        <h3 className="font-display text-2xl font-bold text-niu-dark inline-flex items-center gap-2">
-                          <Home className="text-niu-main w-6 h-6 shrink-0" /> Tipo de Proyecto
-                        </h3>
-                        <p className="text-sm font-light text-gray-500">
-                          Selecciona la solución que se adapta a tu búsqueda.
-                        </p>
-                      </div>
+
 
                       {/* 3 LEVEL CHOICES */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1237,16 +1292,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                       transition={{ duration: 0.3 }}
                       className="space-y-6 text-left"
                     >
-                      <div className="space-y-1">
-                        <h3 className="font-display text-2xl font-bold text-niu-dark inline-flex items-center gap-2">
-                          <MapPin className="text-niu-main w-6 h-6 shrink-0" /> {formData.projectType === 'remontas' ? "Tu Edificio original" : "Tu Terreno"}
-                        </h3>
-                        <p className="text-sm font-light text-gray-500">
-                          {formData.projectType === 'remontas' 
-                            ? "Especifica los datos básicos sobre la edificación o espacio urbano donde se realizará la remonta en altura." 
-                            : "Especifica la información básica de la parcela o terreno donde se asentará tu futuro hogar."}
-                        </p>
-                      </div>
+
 
                       <div className="space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1352,14 +1398,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                       transition={{ duration: 0.3 }}
                       className="space-y-6 text-left"
                     >
-                      <div className="space-y-1">
-                        <h3 className="font-display text-2xl font-bold text-niu-dark inline-flex items-center gap-2">
-                          <Layers className="text-niu-main w-6 h-6 shrink-0" /> Dimensiones y Estancias
-                        </h3>
-                        <p className="text-sm font-light text-gray-500">
-                          Especifica la superficie construible total deseada y la distribución de estancias de tu futura vivienda.
-                        </p>
-                      </div>
+
 
                       <div className="space-y-6">
                         
@@ -1538,14 +1577,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                       transition={{ duration: 0.3 }}
                       className="space-y-6 text-left"
                     >
-                      <div className="space-y-1">
-                        <h3 className="font-display text-2xl font-bold text-niu-dark inline-flex items-center gap-2">
-                          <Trees className="text-niu-main w-6 h-6 shrink-0" /> Exteriores y Adicionales
-                        </h3>
-                        <p className="text-sm font-light text-gray-500">
-                          Selecciona los adicionales exteriores que te interesen para tu parcela. Los costes se calculan dinámicamente y se presupuestan de forma independiente a la vivienda estándar.
-                        </p>
-                      </div>
+
 
                       {/* EXTERIOR OPTION CARDS */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1761,14 +1793,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                       transition={{ duration: 0.3 }}
                       className="space-y-6 text-left"
                     >
-                      <div className="space-y-1">
-                        <h3 className="font-display text-2xl font-bold text-niu-dark inline-flex items-center gap-2">
-                          <Wind className="text-niu-main w-6 h-6 shrink-0" /> Sostenibilidad y Salud
-                        </h3>
-                        <p className="text-sm font-light text-gray-500">
-                          Tu casa respira contigo. Revisa los equipamientos de sostenibilidad ecológica incorporados y opcionales.
-                        </p>
-                      </div>
+
 
                       {/* INCLUDED PREMIUM STANDARDS */}
                       <div className="bg-stone-50 border border-stone-200 rounded p-5 space-y-4">
@@ -1896,14 +1921,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
 
                       {/* Lead form section */}
                       <div className="space-y-6">
-                        <div className="text-center space-y-1 max-w-xl mx-auto">
-                          <h4 className="font-display text-2xl font-bold text-niu-dark">
-                            Consigue tu Estudio de Viabilidad
-                          </h4>
-                          <p className="text-xs font-light text-gray-500 leading-normal">
-                            Introduce tus datos de contacto para enviarte el dossier técnico pormenorizado de calidades y coordinar un primer análisis con arquitectura.
-                          </p>
-                        </div>
+
 
                         {/* INPUT FOR FIELDS */}
                         <div className="space-y-4">
