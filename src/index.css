@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", sans-serif;
+  
+  --color-niu-dark: #1F1E1E;
+  --color-niu-main: #262424;
+  --color-niu-hover: #464444;
+  --color-niu-light: #F6F6F6;
+  --color-niu-accent: #E2E2E2;
+  --color-niu-error: #e53e3e;
+}
+
+/* Custom transitions and helper classes */
+.calc-input {
+  @apply w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-sm focus:bg-white focus:ring-1 focus:ring-niu-main focus:border-niu-main outline-none transition-all duration-300 font-sans text-sm text-gray-800 placeholder-gray-400;
+}
+
+.calc-input-icon {
+  padding-left: 3rem !important;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center bg-niu-main text-white px-8 py-4 text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-niu-hover transition-all duration-300 shadow-md hover:shadow-lg rounded-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center bg-transparent text-gray-500 border border-gray-300 px-8 py-4 text-[10px] uppercase tracking-[0.2em] font-bold hover:text-niu-hover hover:border-niu-hover transition-all duration-300 rounded-sm cursor-pointer;
+}
+
+.option-card {
+  @apply relative p-8 border border-gray-200 bg-white cursor-pointer transition-all duration-300 min-h-[200px] flex flex-col justify-center items-center gap-4 text-center hover:shadow-md hover:-translate-y-0.5 rounded-sm;
+}
+
+.option-card.active-selection {
+  @apply border-2 border-niu-main bg-niu-light/35 shadow-sm;
+  border-color: #262424 !important;
+}
+
+.check-icon {
+  @apply absolute top-4 right-4 text-niu-main hidden;
+}
+
+.active-selection .check-icon {
+  @apply block;
+}
+
+.art-img {
+  @apply w-full h-full object-cover transition-transform duration-700 hover:scale-105;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+  40%, 60% { transform: translate3d(3px, 0, 0); }
+}
+
+.shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  border-color: #e53e3e !important;
+}
