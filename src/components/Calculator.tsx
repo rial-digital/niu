@@ -184,6 +184,43 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
     };
   }, [step, isSuccess]);
 
+  // Scroll to top of the calculator whenever step, success status or active calendly URL changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Smooth scroll inside the iframe to the top of our calculator container
+    try {
+      if (containerRef.current) {
+        containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (e) {
+      window.scrollTo(0, 0);
+    }
+
+    // Post a message to Framer (parent/top frame) notifying about the step change.
+    // This allows custom code in Framer to also scroll the parent window to the top of the iframe section.
+    try {
+      window.parent.postMessage({
+        type: 'niu-step-change',
+        step: step,
+        isSuccess: isSuccess,
+        hasCalendly: !!activeCalendlyUrl
+      }, '*');
+      if (window.top && window.top !== window.parent) {
+        window.top.postMessage({
+          type: 'niu-step-change',
+          step: step,
+          isSuccess: isSuccess,
+          hasCalendly: !!activeCalendlyUrl
+        }, '*');
+      }
+    } catch (e) {
+      console.warn("Could not post step change message to parent window:", e);
+    }
+  }, [step, isSuccess, activeCalendlyUrl]);
+
   // Direct toggle function for boolean choices
   const toggleField = (key: keyof FormData) => {
     setFormData(prev => ({
