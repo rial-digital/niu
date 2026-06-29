@@ -139,11 +139,22 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
       for (let entry of entries) {
         // Measure element including padding, border, and margin spacing
         const height = element.scrollHeight || entry.contentRect.height;
-        // Post message to the parent frame (Framer website)
-        window.parent.postMessage({
-          type: 'niu-resize',
-          height: height
-        }, '*');
+        // Post message to the parent frame and topmost frame (Framer website)
+        try {
+          window.parent.postMessage({
+            type: 'niu-resize',
+            height: height
+          }, '*');
+          if (window.top && window.top !== window.parent) {
+            window.top.postMessage({
+              type: 'niu-resize',
+              height: height
+            }, '*');
+          }
+        } catch (e) {
+          // Fallback if security restrictions block window.top access
+          console.warn("Could not post message to window.top:", e);
+        }
       }
     });
 
@@ -152,10 +163,20 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
     // Also trigger initial measurement immediately
     const initialHeight = element.scrollHeight || element.offsetHeight;
     if (initialHeight) {
-      window.parent.postMessage({
-        type: 'niu-resize',
-        height: initialHeight
-      }, '*');
+      try {
+        window.parent.postMessage({
+          type: 'niu-resize',
+          height: initialHeight
+        }, '*');
+        if (window.top && window.top !== window.parent) {
+          window.top.postMessage({
+            type: 'niu-resize',
+            height: initialHeight
+          }, '*');
+        }
+      } catch (e) {
+        console.warn("Could not post initial message to window.top:", e);
+      }
     }
 
     return () => {
