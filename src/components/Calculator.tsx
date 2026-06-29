@@ -199,6 +199,42 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
       window.scrollTo(0, 0);
     }
 
+    // Google Tag Manager - Push granular interaction events to window.dataLayer
+    try {
+      const dataLayer = (window as any).dataLayer || [];
+      const stepNames: Record<number, string> = {
+        1: '1. Tipo de Proyecto',
+        2: '2. Provincia y Dimensiones',
+        3: '3. Distribución',
+        4: '4. Acabados y Extras',
+        5: '5. Equipamiento y Contacto',
+        6: '6. Estudio de Viabilidad'
+      };
+
+      const currentStepName = stepNames[step] || `Paso ${step}`;
+
+      // Push custom step change event to GTM
+      dataLayer.push({
+        event: 'niu_step_change',
+        step_number: step,
+        step_name: currentStepName,
+        project_type: formData.projectType || 'unifamiliar',
+        province: formData.plotProvince || 'Barcelona',
+        is_success: isSuccess
+      });
+
+      // Track successful lead generation when user reaches step 6 and isSuccess is true
+      if (isSuccess && step === 6) {
+        dataLayer.push({
+          event: 'niu_lead_success',
+          project_type: formData.projectType || 'unifamiliar',
+          province: formData.plotProvince || 'Barcelona'
+        });
+      }
+    } catch (gtmError) {
+      console.warn("Could not push GTM event to dataLayer:", gtmError);
+    }
+
     // Post a message to Framer (parent/top frame) notifying about the step change.
     // This allows custom code in Framer to also scroll the parent window to the top of the iframe section.
     try {
@@ -219,7 +255,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
     } catch (e) {
       console.warn("Could not post step change message to parent window:", e);
     }
-  }, [step, isSuccess, activeCalendlyUrl]);
+  }, [step, isSuccess, activeCalendlyUrl, formData.projectType, formData.plotProvince]);
 
   // Direct toggle function for boolean choices
   const toggleField = (key: keyof FormData) => {
@@ -905,12 +941,14 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
 
     while (retries > 0 && !success) {
       try {
-        const response = await fetch('https://formspree.io/f/mdaldpvq', {
+        // Enviar a la Web App de Google Sheets suministrada por el usuario.
+        // Se utiliza 'text/plain;charset=utf-8' para evitar problemas de CORS (CORS preflight / OPTIONS) en el navegador.
+        // Google Apps Script lo recibe de igual manera en e.postData.contents y se puede parsear con JSON.parse.
+        const response = await fetch('https://script.google.com/macros/s/AKfycbxZm4kBVRMvwHghLZ6-70gs2Gn3YinxbLcblZJXyWdzCVy4VarC9QUBSMYeVCJgoljd0w/exec', {
           method: 'POST',
           body: JSON.stringify(payload),
           headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Content-Type': 'text/plain;charset=utf-8'
           }
         });
 
