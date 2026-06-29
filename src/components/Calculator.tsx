@@ -1238,46 +1238,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                     )}
                   </div>
 
-                  <button 
-                    onClick={() => {
-                      setStep(1);
-                      setIsSuccess(false);
-                      setDossierDownloaded(false);
-                      setActiveCalendlyUrl(null);
-                      setBookedEvent(false);
-                      setFormData({
-                        plotM2: 500,
-                        plotLocation: '',
-                        plotProvince: 'Barcelona',
-                        cadastralRef: '',
-                        houseM2: 120,
-                        floors: 1,
-                        rooms: 3,
-                        baths: 2,
-                        workspaces: 1,
-                        fencing: false,
-                        porch: false,
-                        landscaping: false,
-                        pool: false,
-                        waterRecycling: false,
-                        waterFiltration: false,
-                        solarPanels: false,
-                        finish: 'premium'
-                      });
-                      setUserDetails({
-                        nombre: '',
-                        telefono: '',
-                        email: '',
-                        localidad: '',
-                        detalles: '',
-                        tipoContacto: 'videocall'
-                      });
-                    }} 
-                    className="mt-12 text-gray-400 text-xs hover:text-niu-hover underline transition-all font-semibold uppercase tracking-wider"
-                  >
-                    Realizar otro cálculo
-                  </button>
-                </motion.div>
+                 </motion.div>
               ) : (
                 
                 /* MULTI STEP WIZARD FORM */
