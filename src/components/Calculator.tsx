@@ -1112,7 +1112,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
                             ✕ Cancelar y Volver
                           </button>
                         </div>
-                        <div className="relative bg-white border border-stone-200 rounded overflow-hidden shadow-inner h-[680px] w-full">
+                        <div className="relative bg-white border border-stone-200 rounded overflow-hidden shadow-inner h-[800px] w-full">
                           <iframe 
                             src={activeCalendlyUrl} 
                             width="100%" 
