@@ -942,25 +942,20 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
     while (retries > 0 && !success) {
       try {
         // Enviar a la Web App de Google Sheets suministrada por el usuario.
-        // Se utiliza 'text/plain;charset=utf-8' para evitar problemas de CORS (CORS preflight / OPTIONS) en el navegador.
-        // Google Apps Script lo recibe de igual manera en e.postData.contents y se puede parsear con JSON.parse.
+        // Se utiliza 'text/plain;charset=utf-8' y 'mode: 'no-cors'' para evitar problemas de CORS 
+        // y de redirección (CORS preflight / OPTIONS / 302 redirection) característicos de Google Apps Script en el navegador.
         const response = await fetch('https://script.google.com/macros/s/AKfycbJ7lytlEOgDBYKowW0m77eUWpXqXLrNSmYmYWHDly1Nqi-sgzGK6T7pZLH4CtN6vnp8A/exec', {
           method: 'POST',
+          mode: 'no-cors',
           body: JSON.stringify(payload),
           headers: {
             'Content-Type': 'text/plain;charset=utf-8'
           }
         });
 
-        if (response.ok) {
-          success = true;
-        } else {
-          retries--;
-          if (retries > 0) {
-            await new Promise(resolve => setTimeout(resolve, delay));
-            delay *= 2;
-          }
-        }
+        // Al usar 'no-cors', el navegador realiza la petición pero no permite leer la respuesta de forma directa (status es 0).
+        // Si el fetch se ejecuta y no salta al bloque 'catch', significa que la petición fue transmitida con éxito a Google Apps Script.
+        success = true;
       } catch (err) {
         retries--;
         if (retries > 0) {
@@ -2214,7 +2209,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
 
                         {isSubmitError && (
                           <div className="p-3 bg-red-50 text-red-700 text-xs rounded-sm border border-red-100 font-medium">
-                            Hubo un error al intentar tramitar la solicitud con Formspree. Por favor, revisa tu conexión a internet o reintenta en unos instantes.
+                            Hubo un error al intentar tramitar la solicitud de tu presupuesto. Por favor, revisa tu conexión a internet o reintenta en unos instantes.
                           </div>
                         )}
                       </div>
