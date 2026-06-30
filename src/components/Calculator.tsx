@@ -944,7 +944,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
         // Enviar a la Web App de Google Sheets suministrada por el usuario.
         // Se utiliza 'text/plain;charset=utf-8' para evitar problemas de CORS (CORS preflight / OPTIONS) en el navegador.
         // Google Apps Script lo recibe de igual manera en e.postData.contents y se puede parsear con JSON.parse.
-        const response = await fetch('https://script.google.com/macros/s/AKfycbxZm4kBVRMvwHghLZ6-70gs2Gn3YinxbLcblZJXyWdzCVy4VarC9QUBSMYeVCJgoljd0w/exec', {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbJ7lytlEOgDBYKowW0m77eUWpXqXLrNSmYmYWHDly1Nqi-sgzGK6T7pZLH4CtN6vnp8A/exec', {
           method: 'POST',
           body: JSON.stringify(payload),
           headers: {
