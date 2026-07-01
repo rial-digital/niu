@@ -876,7 +876,11 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
 
   const handleInitiateBooking = (baseUrl: string) => {
     const url = getPrefilledCalendlyUrl(baseUrl);
-    setActiveCalendlyUrl(url);
+    // Abrimos el calendario en una pestaña nueva para evitar que la página de agradecimiento (thank you page)
+    // de Calendly se quede colgada dentro de los iframes anidados (debido a directivas X-Frame-Options o CSP de tu web).
+    window.open(url, '_blank', 'noopener,noreferrer');
+    // Marcamos el evento como agendado para que el usuario visualice de inmediato en la calculadora la confirmación y el botón de PDF
+    setBookedEvent(true);
   };
 
   const handleUserDetailChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -944,7 +948,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
         // Enviar a la Web App de Google Sheets suministrada por el usuario.
         // Se utiliza 'text/plain;charset=utf-8' y 'mode: 'no-cors'' para evitar problemas de CORS 
         // y de redirección (CORS preflight / OPTIONS / 302 redirection) característicos de Google Apps Script en el navegador.
-        const response = await fetch('https://script.google.com/macros/s/AKfycbJ7lytlEOgDBYKowW0m77eUWpXqXLrNSmYmYWHDly1Nqi-sgzGK6T7pZLH4CtN6vnp8A/exec', {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbxhC8TMfveB1zG9Tog6RSM32JGwy_MqyY1QgbgCHBRgtV5qFvfJJErmruuVcjzcDbCx/exec', {
           method: 'POST',
           mode: 'no-cors',
           body: JSON.stringify(payload),
