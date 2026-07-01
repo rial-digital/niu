@@ -874,13 +874,64 @@ export const Calculator: React.FC<CalculatorProps> = ({ currentLang, translation
     }
   };
 
+  // Escucha de eventos de Calendly (postMessage) para detectar cuando el usuario concreta la reserva
+  useEffect(() => {
+    const handleCalendlyMessage = (e: MessageEvent) => {
+      // Calendly envía el evento 'calendly.event_scheduled' cuando se confirma la cita
+      if (e.data?.event === 'calendly.event_scheduled') {
+        console.log("Cita de Calendly agendada con éxito");
+        
+        // Registrar evento en Google Tag Manager si existe
+        try {
+          const dataLayer = (window as any).dataLayer || [];
+          dataLayer.push({
+            event: 'niu_appointment_scheduled',
+            project_type: formData.projectType || 'unifamiliar',
+            province: formData.plotProvince || 'Barcelona'
+          });
+        } catch (gtmError) {
+          console.warn("No se pudo enviar el evento de reserva a GTM:", gtmError);
+        }
+
+        // Marcar la reserva como realizada en el estado local de la calculadora
+        setBookedEvent(true);
+
+        // Disparar la descarga automática del dossier PDF para que no se pierda el archivo del usuario
+        try {
+          handleDownloadDossier();
+        } catch (downloadError) {
+          console.error("No se pudo iniciar la descarga automática del dossier:", downloadError);
+        }
+
+        // Esperar un breve instante (1.5 segundos) para asegurar que el navegador inicie la descarga del dossier
+        // y luego redirigir la página principal (padre) a la Thank You page de Framer.
+        setTimeout(() => {
+          const thankYouUrl = 'https://niuproject.framer.website/gracias';
+          try {
+            // Intentamos redirigir la pestaña completa (el navegador entero)
+            if (window.top) {
+              window.top.location.href = thankYouUrl;
+            } else {
+              window.location.href = thankYouUrl;
+            }
+          } catch (redirectError) {
+            // Si hay políticas de CORS del navegador que impidan navegar window.top, redirigimos el propio iframe
+            window.location.href = thankYouUrl;
+          }
+        }, 1500);
+      }
+    };
+
+    window.addEventListener('message', handleCalendlyMessage);
+    return () => {
+      window.removeEventListener('message', handleCalendlyMessage);
+    };
+  }, [handleDownloadDossier, formData.projectType, formData.plotProvince]);
+
   const handleInitiateBooking = (baseUrl: string) => {
     const url = getPrefilledCalendlyUrl(baseUrl);
-    // Abrimos el calendario en una pestaña nueva para evitar que la página de agradecimiento (thank you page)
-    // de Calendly se quede colgada dentro de los iframes anidados (debido a directivas X-Frame-Options o CSP de tu web).
-    window.open(url, '_blank', 'noopener,noreferrer');
-    // Marcamos el evento como agendado para que el usuario visualice de inmediato en la calculadora la confirmación y el botón de PDF
-    setBookedEvent(true);
+    // Cambiamos a la integración incrustada (inline iframe) dentro de la calculadora
+    setActiveCalendlyUrl(url);
   };
 
   const handleUserDetailChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
